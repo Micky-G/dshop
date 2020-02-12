@@ -1,3 +1,5 @@
+# Forked from DevMentors consolodated into a single repository and make it deployable to Kubernetes
+
 # Distributed .NET Core
 
 ![DevMentors](https://github.com/devmentors/DNC-DShop/blob/master/assets/devmentors_logo.png)

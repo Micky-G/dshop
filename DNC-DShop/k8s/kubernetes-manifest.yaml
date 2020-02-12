@@ -25,7 +25,6 @@
 # microk8s.disable dns dashboard storage
 # microk8s.stop
 
-
 ## *** rabbit mq ***
 apiVersion: apps/v1
 kind: Deployment
@@ -588,6 +587,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.api:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"
         readinessProbe:
           httpGet:
             path : /ping
@@ -662,6 +664,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.customers:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping
@@ -722,6 +727,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.identity:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping
@@ -796,6 +804,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.notifications:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping
@@ -856,6 +867,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.operations:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping
@@ -916,6 +930,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.orders:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping
@@ -976,6 +993,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.products:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping
@@ -1036,6 +1056,9 @@ spec:
         image: michaelgroenewald/k8s.dshop.services.signalr:latest
         ports:
         - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
         readinessProbe:
           httpGet:
             path : /ping

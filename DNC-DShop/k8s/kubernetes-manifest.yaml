@@ -1,0 +1,1050 @@
+# kubectl logs -n d-shop --tail=50 --follow apiservice-5b78b5b574-hqksn 
+# kubectl port-forward -n kube-system service/kubernetes-dashboard 10443:443
+# kubectl port-forward -n d-shop service/rabbitmq 15672:15672
+# kubectl port-forward -n d-shop service/jaeger 16686:16686
+
+## *** rabbit mq ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3-management
+        volumeMounts:
+        - mountPath: /data
+          name: rabbitmq-data
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        readinessProbe:
+          httpGet:
+            path : /
+            port: 15672
+          initialDelaySeconds: 60
+          periodSeconds: 25
+        livenessProbe:
+          httpGet:
+            path : /
+            port: 15672
+          initialDelaySeconds: 60
+          periodSeconds: 25			  
+        resources:
+          limits:
+            cpu: 250m
+            memory: 512Mi
+          requests:
+            cpu: 140m
+            memory: 500Mi
+      volumes:
+      - name: rabbitmq-data
+        emptyDir: {}	
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+spec:
+  type: ClusterIP
+  selector:
+    app: rabbitmq
+  ports:
+   - name: http
+     protocol: TCP
+     port: 15672
+     targetPort: 15672
+   - name: amqp
+     protocol: TCP
+     port: 5672
+     targetPort: 5672
+---
+
+## *** mongo db ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: mongo
+        image: mongo:4
+        volumeMounts:
+        - mountPath: /data
+          name: mongo-data		
+        ports:
+        - containerPort: 27017
+        readinessProbe:
+          periodSeconds: 5
+          tcpSocket:
+            port: 27017
+        livenessProbe:
+          periodSeconds: 5
+          tcpSocket:
+            port: 27017
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 125m
+          requests:
+            cpu: 70m
+            memory: 200Mi
+      volumes:
+      - name: mongo-data
+        emptyDir: {}		
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  type: ClusterIP
+  selector:
+    app: mongo
+  ports:
+  - name: mongo
+    port: 27017
+    targetPort: 27017
+---
+
+## *** redis cache ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: redis
+        image: redis
+        volumeMounts:
+        - mountPath: /data
+          name: redis-data		
+        ports:
+        - containerPort: 6379
+        readinessProbe:
+          periodSeconds: 5
+          tcpSocket:
+            port: 6379
+        livenessProbe:
+          periodSeconds: 5
+          tcpSocket:
+            port: 6379
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 125m
+          requests:
+            cpu: 70m
+            memory: 200Mi
+      volumes:
+      - name: redis-data
+        emptyDir: {}		
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+---
+
+## *** seq ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: seq
+spec:
+  selector:
+    matchLabels:
+      app: seq
+  template:
+    metadata:
+      labels:
+        app: seq
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: seq
+        image: datalust/seq
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        volumeMounts:
+        - mountPath: /data
+          name: seq-data  
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path : /
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 25
+        livenessProbe:
+          httpGet:
+            path : /
+            port: 80
+          initialDelaySeconds: 60
+          periodSeconds: 25			
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 125m
+          requests:
+            cpu: 70m
+            memory: 200Mi
+      volumes:
+      - name: seq-data
+        emptyDir: {}		
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: seq
+spec:
+  type: ClusterIP
+  selector:
+    app: seq
+  ports:
+  - name: seq
+    port: 80
+    targetPort: 80
+---
+
+## *** jaeger ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jaeger
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  template:
+    metadata:
+      labels:
+        app: jaeger
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: jaeger
+        image: jaegertracing/all-in-one
+        env:
+        - name: COLLECTOR_ZIPKIN_HTTP_PORT
+          value: "9411"		
+        volumeMounts:
+        - mountPath: /data
+          name: jaeger-data		
+        ports:
+          - containerPort: 5775
+            protocol: UDP
+          - containerPort: 6831
+            protocol: UDP
+          - containerPort: 6832
+            protocol: UDP
+          - containerPort: 5778
+            protocol: TCP
+          - containerPort: 16686
+            protocol: TCP
+          - containerPort: 14268
+            protocol: TCP
+          - containerPort: 9411
+            protocol: TCP
+        readinessProbe:
+          httpGet:
+            path : /
+            port: 16686
+          initialDelaySeconds: 60
+          periodSeconds: 25
+        livenessProbe:
+          httpGet:
+            path : /
+            port: 16686
+          initialDelaySeconds: 60
+          periodSeconds: 25				
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 125m
+          requests:
+            cpu: 70m
+            memory: 200Mi
+      volumes:
+      - name: jaeger-data
+        emptyDir: {}		
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger
+spec:
+  type: ClusterIP
+  selector:
+    app: jaeger
+  ports:
+  - name: jaeger-query
+    port: 16686
+    protocol: TCP
+    targetPort: 16686
+  - name: jaeger-collector-http
+    port: 14268
+    protocol: TCP
+    targetPort: 14268
+  - name: jaeger-collector-zipkin
+    port: 9411
+    protocol: TCP
+    targetPort: 9411
+  - name: jaeger-configs
+    port: 5778
+    protocol: TCP
+    targetPort: 5778
+  - name: jaeger-udp-5775
+    port: 5775
+    protocol: UDP
+    targetPort: 5775
+  - name: jaeger-udp-6831
+    port: 6831
+    protocol: UDP
+    targetPort: 6831
+  - name: jaeger-udp-6832
+    port: 6832
+    protocol: UDP
+    targetPort: 6832	
+---
+
+## *** prometheus ***
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-server-conf
+  labels:
+    name: prometheus-server-conf
+  namespace: d-shop
+data:
+  prometheus.yml: |-
+    # my global config
+    global:
+      scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+      evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+      # scrape_timeout is set to the global default (10s).
+
+      # Attach these labels to any time series or alerts when communicating with
+      # external systems (federation, remote storage, Alertmanager).
+      external_labels:
+        monitor: 'codelab-monitor'
+
+    # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+    rule_files:
+      # - "first.rules"
+      # - "second.rules"
+
+    # A scrape configuration containing exactly one endpoint to scrape:
+    # Here it's Prometheus itself.
+    scrape_configs:
+      # The job name is added as a label 'job=\<job_name\>' to any timeseries scraped from this config.
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['prometheus:9090']
+      - job_name: 'api'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['apiservice:5000']
+      - job_name: 'customers-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['customerservice:5001']
+      - job_name: 'identity-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['identityservice:5002']
+      - job_name: 'notification-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['notificationservice:5003']
+      - job_name: 'operations-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['operationservice:5004']
+      - job_name: 'orders-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['orderservice:5005']
+      - job_name: 'products-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['productservice:5006']
+      - job_name: 'signalr-service'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets: ['signalrservice:5007']
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: prometheus
+        image: prom/prometheus
+        env:
+        volumeMounts:
+          - name: config-volume
+            mountPath: /etc/prometheus/prometheus.yml
+            subPath: prometheus.yml
+        ports:
+        - containerPort: 9090
+        readinessProbe:
+          httpGet:
+            path : /
+            port: 9090
+          initialDelaySeconds: 60
+          periodSeconds: 25
+        livenessProbe:
+          httpGet:
+            path : /
+            port: 9090
+          initialDelaySeconds: 60
+          periodSeconds: 25				
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 125m
+          requests:
+            cpu: 70m
+            memory: 200Mi
+      volumes:
+        - name: config-volume
+          configMap:
+           name: prometheus-server-conf
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+spec:
+  type: ClusterIP
+  selector:
+    app: prometheus
+  ports:
+  - name: prometheus
+    port: 9090
+    targetPort: 9090
+---
+
+## *** grafana ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: grafana
+        image: grafana/grafana
+        volumeMounts:
+        - mountPath: /data
+          name: grafana-data		
+        ports:
+        - containerPort: 3000
+        readinessProbe:
+          httpGet:
+            path : /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 25
+        livenessProbe:
+          httpGet:
+            path : /
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 25			
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: 125m
+          requests:
+            cpu: 70m
+            memory: 200Mi
+      volumes:
+      - name: grafana-data
+        emptyDir: {}		
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  type: ClusterIP
+  selector:
+    app: grafana
+  ports:
+  - name: grafana
+    port: 3000
+    targetPort: 3000
+---
+
+## *** api service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apiservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apiservice
+  template:
+    metadata:
+      labels:
+        app: apiservice		
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.api:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: apiservice
+spec:
+  type: ClusterIP
+  selector:
+    app: apiservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: apiservice-external
+spec:
+  type: LoadBalancer
+  selector:
+    app: apiservice
+  ports:
+  - name: http
+    port: 5000
+    targetPort: 5000
+---
+
+## *** customer service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customerservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: customerservice
+  template:
+    metadata:
+      labels:
+        app: customerservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.customers:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: customerservice
+spec:
+  type: ClusterIP
+  selector:
+    app: customerservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5001
+    targetPort: 5000
+---
+
+## *** identity service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identityservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identityservice
+  template:
+    metadata:
+      labels:
+        app: identityservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.identity:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: identityservice
+spec:
+  type: ClusterIP
+  selector:
+    app: identityservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5002
+    targetPort: 5000
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: identityservice-external
+spec:
+  type: LoadBalancer
+  selector:
+    app: identityservice
+  ports:
+  - name: http
+    port: 5002
+    targetPort: 5000
+---
+
+## *** notification service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notificationservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notificationservice
+  template:
+    metadata:
+      labels:
+        app: notificationservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.notifications:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: notificationservice
+spec:
+  type: ClusterIP
+  selector:
+    app: notificationservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5003
+    targetPort: 5000
+---
+
+## *** operations service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operationservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: operationservice
+  template:
+    metadata:
+      labels:
+        app: operationservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.operations:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: operationservice
+spec:
+  type: ClusterIP
+  selector:
+    app: operationservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5004
+    targetPort: 5000
+---
+
+## *** order service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderservice
+  template:
+    metadata:
+      labels:
+        app: orderservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.orders:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: orderservice
+spec:
+  type: ClusterIP
+  selector:
+    app: orderservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5005
+    targetPort: 5000
+---
+
+## *** product service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: productservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: productservice
+  template:
+    metadata:
+      labels:
+        app: productservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.products:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: productservice
+spec:
+  type: ClusterIP
+  selector:
+    app: productservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5006
+    targetPort: 5000
+---
+
+## *** signalr service ***
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: signalrservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: signalrservice
+  template:
+    metadata:
+      labels:
+        app: signalrservice
+    spec:
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
+      containers:
+      - name: server
+        image: michaelgroenewald/k8s.dshop.services.signalr:latest
+        ports:
+        - containerPort: 5000
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: signalrservice
+spec:
+  type: ClusterIP
+  selector:
+    app: signalrservice
+  ports:
+  - name: http
+    protocol: TCP
+    port: 5007
+    targetPort: 5000
+---

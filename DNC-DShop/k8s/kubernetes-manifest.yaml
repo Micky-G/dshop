@@ -1,7 +1,30 @@
+## *** Some useful k8s commands to help making a start ***
+
+# microk8s.start
+# microk8s.enable dns dashboard storage
+# kubectl apply -f kubernetes-manifest.yaml -n d-shop
+
+# kubectl get pods -n d-shop
+# kubectl get services -n d-shop
+# kubectl get configmaps -n d-shop
+
+# kubectl logs -n d-shop -p customerservice-868fbf65b-4frzs
+# kubectl logs -n d-shop -p notificationservice-6bd65cb458-pdvdb
+# kubectl logs -n d-shop -p customerservice-868fbf65b-4frzs
 # kubectl logs -n d-shop --tail=50 --follow apiservice-5b78b5b574-hqksn 
+
 # kubectl port-forward -n kube-system service/kubernetes-dashboard 10443:443
 # kubectl port-forward -n d-shop service/rabbitmq 15672:15672
 # kubectl port-forward -n d-shop service/jaeger 16686:16686
+# kubectl port-forward -n d-shop service/prometheus 9090:9090
+# kubectl port-forward -n d-shop service/seq 5341:80
+
+# kubectl delete -n d-shop pod customerservice-868fbf65b-4frzs
+# kubectl delete -n d-shop -f kubernetes-manifest.yaml
+
+# microk8s.disable dns dashboard storage
+# microk8s.stop
+
 
 ## *** rabbit mq ***
 apiVersion: apps/v1

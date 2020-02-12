@@ -1,4 +1,4 @@
-# Forked from DevMentors consolodated into a single repository and make it deployable to Kubernetes
+Forked from DevMentors consolidated into a single repository and make it deployable to Kubernetes. Tested on microk8s.
 
 # Distributed .NET Core
 

@@ -8,7 +8,7 @@
 # kubectl get services -n d-shop
 # kubectl get configmaps -n d-shop
 
-# kubectl logs -n d-shop -p customerservice-868fbf65b-4frzs
+# kubectl logs -n d-shop -p customerservice-5856f5879f-qxxql
 # kubectl logs -n d-shop -p notificationservice-6bd65cb458-pdvdb
 # kubectl logs -n d-shop -p customerservice-868fbf65b-4frzs
 # kubectl logs -n d-shop --tail=50 --follow apiservice-5b78b5b574-hqksn 
@@ -25,11 +25,28 @@
 # microk8s.disable dns dashboard storage
 # microk8s.stop
 
+# microk8s.enable dns dashboard storage helm
+# helm install --name wordpress stable/wordpress
+# helm delete --purge wordpress
+# microk8s.disable dns dashboard storage helm
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dshop
+
+##*****************************************************************************
+##*****************************************************************************
+##*************************** INFRASTRUCTURE **********************************
+##*****************************************************************************
+##*****************************************************************************
+
 ## *** rabbit mq ***
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rabbitmq
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -38,6 +55,8 @@ spec:
     metadata:
       labels:
         app: rabbitmq
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -77,6 +96,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: rabbitmq
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -97,6 +117,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mongo
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -105,6 +126,8 @@ spec:
     metadata:
       labels:
         app: mongo
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -139,6 +162,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: mongo
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -154,6 +178,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -162,6 +187,8 @@ spec:
     metadata:
       labels:
         app: redis
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -196,6 +223,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -211,6 +239,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: seq
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -219,6 +248,8 @@ spec:
     metadata:
       labels:
         app: seq
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -260,6 +291,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: seq
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -275,6 +307,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: jaeger
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -283,6 +316,8 @@ spec:
     metadata:
       labels:
         app: jaeger
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -337,6 +372,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: jaeger
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -379,7 +415,7 @@ metadata:
   name: prometheus-server-conf
   labels:
     name: prometheus-server-conf
-  namespace: d-shop
+  namespace: dshop
 data:
   prometheus.yml: |-
     # my global config
@@ -443,6 +479,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -451,6 +488,8 @@ spec:
     metadata:
       labels:
         app: prometheus
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -492,6 +531,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -507,6 +547,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
+  namespace: dshop
 spec:
   selector:
     matchLabels:
@@ -515,6 +556,8 @@ spec:
     metadata:
       labels:
         app: grafana
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       containers:
@@ -553,6 +596,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -563,11 +607,20 @@ spec:
     targetPort: 3000
 ---
 
+
+##*****************************************************************************
+##*****************************************************************************
+##****************************** APPLICATION **********************************
+##*****************************************************************************
+##*****************************************************************************
+
+
 ## *** api service ***
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: apiservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -576,14 +629,16 @@ spec:
   template:
     metadata:
       labels:
-        app: apiservice		
+        app: apiservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
       containers:
-      - name: server
+      - name: apiservice
         image: michaelgroenewald/k8s.dshop.api:latest
         ports:
         - containerPort: 5000
@@ -615,6 +670,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: apiservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -626,25 +682,12 @@ spec:
     targetPort: 5000
 ---
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: apiservice-external
-spec:
-  type: LoadBalancer
-  selector:
-    app: apiservice
-  ports:
-  - name: http
-    port: 5000
-    targetPort: 5000
----
-
 ## *** customer service ***
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: customerservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -654,13 +697,15 @@ spec:
     metadata:
       labels:
         app: customerservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
       containers:
-      - name: server
+      - name: customerservice
         image: michaelgroenewald/k8s.dshop.services.customers:latest
         ports:
         - containerPort: 5000
@@ -692,6 +737,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: customerservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -708,6 +754,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: identityservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -717,13 +764,15 @@ spec:
     metadata:
       labels:
         app: identityservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
       containers:
-      - name: server
+      - name: identityservice
         image: michaelgroenewald/k8s.dshop.services.identity:latest
         ports:
         - containerPort: 5000
@@ -755,6 +804,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: identityservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -766,25 +816,12 @@ spec:
     targetPort: 5000
 ---
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: identityservice-external
-spec:
-  type: LoadBalancer
-  selector:
-    app: identityservice
-  ports:
-  - name: http
-    port: 5002
-    targetPort: 5000
----
-
 ## *** notification service ***
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notificationservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -794,13 +831,15 @@ spec:
     metadata:
       labels:
         app: notificationservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
       containers:
-      - name: server
+      - name: notificationservice
         image: michaelgroenewald/k8s.dshop.services.notifications:latest
         ports:
         - containerPort: 5000
@@ -832,6 +871,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: notificationservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -848,6 +888,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: operationservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -857,13 +898,15 @@ spec:
     metadata:
       labels:
         app: operationservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
       containers:
-      - name: server
+      - name: operationservice
         image: michaelgroenewald/k8s.dshop.services.operations:latest
         ports:
         - containerPort: 5000
@@ -895,6 +938,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: operationservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -911,6 +955,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: orderservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -920,13 +965,15 @@ spec:
     metadata:
       labels:
         app: orderservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
       containers:
-      - name: server
+      - name: orderservice
         image: michaelgroenewald/k8s.dshop.services.orders:latest
         ports:
         - containerPort: 5000
@@ -958,6 +1005,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: orderservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -974,6 +1022,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: productservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -983,13 +1032,15 @@ spec:
     metadata:
       labels:
         app: productservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
       containers:
-      - name: server
+      - name: productservice
         image: michaelgroenewald/k8s.dshop.services.products:latest
         ports:
         - containerPort: 5000
@@ -1021,6 +1072,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: productservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -1037,6 +1089,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: signalrservice
+  namespace: dshop
 spec:
   replicas: 1
   selector:
@@ -1046,13 +1099,15 @@ spec:
     metadata:
       labels:
         app: signalrservice
+        environment: dev
+        version: v0.1
     spec:
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
           image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
       containers:
-      - name: server
+      - name: signalrservice
         image: michaelgroenewald/k8s.dshop.services.signalr:latest
         ports:
         - containerPort: 5000
@@ -1084,6 +1139,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: signalrservice
+  namespace: dshop
 spec:
   type: ClusterIP
   selector:
@@ -1093,4 +1149,78 @@ spec:
     protocol: TCP
     port: 5007
     targetPort: 5000
+---
+
+##*****************************************************************************
+##*****************************************************************************
+##******************************** ACCESS *************************************
+##*****************************************************************************
+##*****************************************************************************
+
+## LOAD BALANCERS
+
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: apiservice-external
+#  namespace: dshop
+#spec:
+#  type: LoadBalancer
+#  selector:
+#    app: apiservice
+#  ports:
+#  - name: http
+#    port: 5000
+#    targetPort: 5000
+#---
+
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: identityservice-external
+#  namespace: dshop
+#spec:
+#  type: LoadBalancer
+#  selector:
+#    app: identityservice
+#  ports:
+#  - name: http
+#    port: 5002
+#    targetPort: 5000
+#---
+
+## INGRESS (using the helm deployed nginx-ingress chart)
+
+# https://kubernetes.github.io/ingress-nginx/examples/
+# https://github.com/nginxinc/kubernetes-ingress/tree/master/examples
+
+# deploy the ingress controller
+# helm install --name ingress stable/nginx-ingress
+# helm delete --purge ingress
+
+# KUBE_EDITOR="nano" kubectl edit -n ingress pod/nginx-ingress-microk8s-controller-6x696
+
+# deploy the ingress resource
+# This works but I am not an nginx guy so not sure why, need to figure this out at some point
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: dshop-ingress
+  namespace: dshop
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"    
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /api(/|$)(.*)
+        backend:
+          serviceName: apiservice
+          servicePort: 5000
+      - path: /identity(/|$)(.*)
+        backend:
+          serviceName: identityservice
+          servicePort: 5002
 ---

@@ -1,35 +1,49 @@
-## *** Some useful k8s commands to help making a start ***
+## *** Some useful k8s commands to help make a start ***
+## *** I have set up an allias to to the following
+## *** alias kubectl=microk8s.kubectl
+## *** alias helm=microk8s.helm
 
+# Start/stop microk8s
 # microk8s.start
-# microk8s.enable dns dashboard storage
-# kubectl apply -f kubernetes-manifest.yaml -n d-shop
+# microk8s.stop
 
-# kubectl get pods -n d-shop
-# kubectl get services -n d-shop
-# kubectl get configmaps -n d-shop
+# Enable/disable the bits that we need
+# microk8s.enable dns dashboard storage helm
+# microk8s.disable dns dashboard storage helm
 
-# kubectl logs -n d-shop -p customerservice-5856f5879f-qxxql
-# kubectl logs -n d-shop -p notificationservice-6bd65cb458-pdvdb
-# kubectl logs -n d-shop -p customerservice-868fbf65b-4frzs
-# kubectl logs -n d-shop --tail=50 --follow apiservice-5b78b5b574-hqksn 
+# Apply/delete our manifest
+# kubectl apply -f kubernetes-manifest.yaml -n dshop
+# kubectl delete -n dshop -f kubernetes-manifest.yaml
 
+# A couple of simple get commands
+# kubectl get pods -n dshop
+# kubectl get services -n dshop
+# kubectl get configmaps -n dshop
+# kubectl get ingress -n dshop
+# kubectl get serviceaccounts -n dshop
+
+# View the logs of a specific pod
+# kubectl logs -n dshop customerservice-5856f5879f-qxxql
+
+# Do some port forwarding on some of the services in order to access them
 # kubectl port-forward -n kube-system service/kubernetes-dashboard 10443:443
 # kubectl port-forward -n d-shop service/rabbitmq 15672:15672
 # kubectl port-forward -n d-shop service/jaeger 16686:16686
 # kubectl port-forward -n d-shop service/prometheus 9090:9090
 # kubectl port-forward -n d-shop service/seq 5341:80
 
-# kubectl delete -n d-shop pod customerservice-868fbf65b-4frzs
-# kubectl delete -n d-shop -f kubernetes-manifest.yaml
+# Delete a pod and see the scheduler recreating it
+# kubectl delete -n dshop pod customerservice-868fbf65b-4frzs
 
-# microk8s.disable dns dashboard storage
-# microk8s.stop
+# deploy the nginx ingress controller helm chart
+# helm install --name ingress stable/nginx-ingress
+# helm delete --purge ingress
 
-# microk8s.enable dns dashboard storage helm
+# deploy the wordpress helm chart
 # helm install --name wordpress stable/wordpress
 # helm delete --purge wordpress
-# microk8s.disable dns dashboard storage helm
 
+# kubectl create namespace dshop
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -616,6 +630,15 @@ spec:
 
 
 ## *** api service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: api-service
+  namespace: dshop
+  labels:
+    account: apiservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -633,6 +656,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: api-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -640,6 +664,7 @@ spec:
       containers:
       - name: apiservice
         image: michaelgroenewald/k8s.dshop.api:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -683,6 +708,15 @@ spec:
 ---
 
 ## *** customer service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: customer-service
+  namespace: dshop
+  labels:
+    account: customerservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -700,6 +734,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: customer-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -707,6 +742,7 @@ spec:
       containers:
       - name: customerservice
         image: michaelgroenewald/k8s.dshop.services.customers:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -750,6 +786,15 @@ spec:
 ---
 
 ## *** identity service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: identity-service
+  namespace: dshop
+  labels:
+    account: identityservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -767,6 +812,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: identity-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -774,6 +820,7 @@ spec:
       containers:
       - name: identityservice
         image: michaelgroenewald/k8s.dshop.services.identity:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -817,6 +864,15 @@ spec:
 ---
 
 ## *** notification service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: notification-service
+  namespace: dshop
+  labels:
+    account: notificationservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -834,6 +890,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: notification-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -841,6 +898,7 @@ spec:
       containers:
       - name: notificationservice
         image: michaelgroenewald/k8s.dshop.services.notifications:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -884,6 +942,15 @@ spec:
 ---
 
 ## *** operations service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: operations-service
+  namespace: dshop
+  labels:
+    account: operationservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -901,6 +968,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: operations-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -908,6 +976,7 @@ spec:
       containers:
       - name: operationservice
         image: michaelgroenewald/k8s.dshop.services.operations:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -951,6 +1020,15 @@ spec:
 ---
 
 ## *** order service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: order-service
+  namespace: dshop
+  labels:
+    account: orderservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -968,6 +1046,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: order-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -975,6 +1054,7 @@ spec:
       containers:
       - name: orderservice
         image: michaelgroenewald/k8s.dshop.services.orders:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -1018,6 +1098,15 @@ spec:
 ---
 
 ## *** product service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: product-service
+  namespace: dshop
+  labels:
+    account: productservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1035,6 +1124,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: product-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -1042,6 +1132,7 @@ spec:
       containers:
       - name: productservice
         image: michaelgroenewald/k8s.dshop.services.products:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:
@@ -1085,6 +1176,15 @@ spec:
 ---
 
 ## *** signalr service ***
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: signalr-service
+  namespace: dshop
+  labels:
+    account: signalrservice
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -1102,6 +1202,7 @@ spec:
         environment: dev
         version: v0.1
     spec:
+      serviceAccountName: signalr-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
@@ -1109,6 +1210,7 @@ spec:
       containers:
       - name: signalrservice
         image: michaelgroenewald/k8s.dshop.services.signalr:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
         env:

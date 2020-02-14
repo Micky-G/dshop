@@ -1,11 +1,11 @@
-@apiUrl = http://10.20.30.34:31302
-@identityServiceUrl = http://10.20.30.34:32339
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlYjUwMGJlZDM4N2Q0ZDMyYjQyNTFmY2FjOWE3ZGQ5ZSIsInVuaXF1ZV9uYW1lIjoiZWI1MDBiZWQzODdkNGQzMmI0MjUxZmNhYzlhN2RkOWUiLCJqdGkiOiJiZWZlMGU4ZC0yYzQ0LTRlZjEtYWQwYS1mODhiYzJmNTMxNGUiLCJpYXQiOiIxNTgxNTI0OTY4MjA1IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJuYmYiOjE1ODE1MjQ5NjgsImV4cCI6MTU4MTUzMjE2OCwiaXNzIjoiaWRlbnRpdHktc2VydmljZSJ9.9HtgR9NyW_1GagP_Cyi2UmsK0LxTJwmvRA2aUVRpGVQ
+@apiUrl = http://api.mwg.com:32715
+@identityServiceUrl = http://identity.mwg.com:32715
+@accessToken = xxxxxxxxxxxxxxxxxx
 @refreshToken = xxxxxxxxxxxxxxxxxx
 @operationId = xxxxxxxxxxxxxxxxxx
-@productId = 4258390f-65bf-493e-8b37-a7ce98b78c19
+@productId = xxxxxxxxxxxxxxxxxx
 @customerId = xxxxxxxxxxxxxxxxxx
-@orderId = 308fc39a-b222-4649-9da8-67e6c88a86c8
+@orderId = xxxxxxxxxxxxxxxxxx
 
 # ================= OPERATION DETAILS ======================= #
 
@@ -44,11 +44,11 @@ authorization: Bearer {{accessToken}}
 content-type: application/json
 
 {
-	"name": "My product 2",
-	"description": "My product 2 description",
+	"name": "My product 3",
+	"description": "My product 3 description",
 	"vendor": "My company",
 	"price": 4000,
-	"quantity": 20
+	"quantity": 5
 }
 
 ### Get products list

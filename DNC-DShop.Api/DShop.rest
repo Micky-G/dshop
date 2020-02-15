@@ -1,6 +1,7 @@
-@apiUrl = http://api.mwg.com:32715
-@identityServiceUrl = http://identity.mwg.com:32715
-@accessToken = xxxxxxxxxxxxxxxxxx
+#@apiUrl = http://api.mwg.com:30389
+@apiUrl = http://127.0.0.1:31380/
+@identityServiceUrl = http://127.0.0.1:31380/
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMjYxODc0YjA0N2Y0MWRkOWE0Nzk0OTYyYjM3MzMwYSIsInVuaXF1ZV9uYW1lIjoiMDI2MTg3NGIwNDdmNDFkZDlhNDc5NDk2MmIzNzMzMGEiLCJqdGkiOiJmNzkwZTNjNi0xYWIxLTQ2NWMtOTMwMC1hZjkxODQ4ZTU0OTQiLCJpYXQiOiIxNTgxNzc5MzM5NzY0IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJuYmYiOjE1ODE3NzkzMzksImV4cCI6MTU4MTc4NjUzOSwiaXNzIjoiaWRlbnRpdHktc2VydmljZSJ9.g6IzYW9oD9-LlPPIK45Z0yX-17sv-n0YivFesx6u2-Y
 @refreshToken = xxxxxxxxxxxxxxxxxx
 @operationId = xxxxxxxxxxxxxxxxxx
 @productId = xxxxxxxxxxxxxxxxxx
@@ -17,6 +18,7 @@ GET {{apiUrl}}/operations/{{operationId}}
 
 ### Sign up as admin
 POST {{identityServiceUrl}}/sign-up
+Host: identity.mwg.com
 content-type: application/json
 
 {
@@ -44,11 +46,11 @@ authorization: Bearer {{accessToken}}
 content-type: application/json
 
 {
-	"name": "My product 3",
-	"description": "My product 3 description",
+	"name": "My product",
+	"description": "My product description",
 	"vendor": "My company",
-	"price": 4000,
-	"quantity": 5
+	"price": 2000,
+	"quantity": 10
 }
 
 ### Get products list

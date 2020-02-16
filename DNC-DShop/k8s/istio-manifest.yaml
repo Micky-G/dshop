@@ -1,12 +1,6 @@
 ## kubectl label namespace dshop istio-injection=enabled
 ## kubectl port-forward -n istio-system service/grafana 3000:3000
 
-## kubectl label namespace dshop istio-injection=enabled
-## kubectl port-forward -n istio-system service/grafana 3000:3000
-
-## kubectl label namespace dshop istio-injection=enabled
-## kubectl port-forward -n istio-system service/grafana 3000:3000
-
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
@@ -58,4 +52,4 @@ spec:
     - destination:
         host: identityservice
         port:
-          number: 5002
+          number: 5002                    

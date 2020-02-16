@@ -1,7 +1,8 @@
-#@apiUrl = http://api.mwg.com:30389
-@apiUrl = http://127.0.0.1:31380/
-@identityServiceUrl = http://127.0.0.1:31380/
-@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIwMjYxODc0YjA0N2Y0MWRkOWE0Nzk0OTYyYjM3MzMwYSIsInVuaXF1ZV9uYW1lIjoiMDI2MTg3NGIwNDdmNDFkZDlhNDc5NDk2MmIzNzMzMGEiLCJqdGkiOiJmNzkwZTNjNi0xYWIxLTQ2NWMtOTMwMC1hZjkxODQ4ZTU0OTQiLCJpYXQiOiIxNTgxNzc5MzM5NzY0IiwiaHR0cDovL3NjaGVtYXMubWljcm9zb2Z0LmNvbS93cy8yMDA4LzA2L2lkZW50aXR5L2NsYWltcy9yb2xlIjoiYWRtaW4iLCJuYmYiOjE1ODE3NzkzMzksImV4cCI6MTU4MTc4NjUzOSwiaXNzIjoiaWRlbnRpdHktc2VydmljZSJ9.g6IzYW9oD9-LlPPIK45Z0yX-17sv-n0YivFesx6u2-Y
+@apiUrl = http://api.mwg.com:31380
+@apiHost = api.mwg.com
+@identityServiceUrl = http://identity.mwg.com:31380
+@identityHost = identity.mwg.com
+@accessToken = xxxxxxxxxxxxxxxxxx
 @refreshToken = xxxxxxxxxxxxxxxxxx
 @operationId = xxxxxxxxxxxxxxxxxx
 @productId = xxxxxxxxxxxxxxxxxx
@@ -16,9 +17,19 @@ GET {{apiUrl}}/operations/{{operationId}}
 
 # ================= IDENTITY SERVICE ======================= #
 
+### Test identity api
+GET {{identityServiceUrl}}
+Host: {{identityHost}}
+
+### Test api gateway
+GET {{apiUrl}}
+Host: {{apiHost}}
+
+# ================= IDENTITY SERVICE ======================= #
+
 ### Sign up as admin
 POST {{identityServiceUrl}}/sign-up
-Host: identity.mwg.com
+Host: {{identityHost}}
 content-type: application/json
 
 {
@@ -29,6 +40,7 @@ content-type: application/json
 
 ### Sign in as admin
 POST {{identityServiceUrl}}/sign-in
+Host: {{identityHost}}
 content-type: application/json
 
 {
@@ -42,6 +54,7 @@ content-type: application/json
 
 ### Create as many unique (by name) products as needed
 POST {{apiUrl}}/products
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -55,13 +68,16 @@ content-type: application/json
 
 ### Get products list
 GET {{apiUrl}}/products
+Host: {{apiHost}}
 
 ### Get product details by updating @productId parameter above
 GET {{apiUrl}}/products/{{productId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Update a product if needed
 PUT {{apiUrl}}/products/{{productId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -74,20 +90,24 @@ content-type: application/json
 
 ### Delete a product if needed
 DELETE {{apiUrl}}/products/{{productId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Browse customers (if exist)
 GET {{apiUrl}}/customers
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Get a customer account details
 GET {{apiUrl}}/customers/{{customerId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 # ================= USER WORKFLOW ======================= #
 
 ### Sign up as user
 POST {{identityServiceUrl}}/sign-up
+Host: {{identityHost}}
 content-type: application/json
 
 {
@@ -98,6 +118,7 @@ content-type: application/json
 
 ### Sign in as user
 POST {{identityServiceUrl}}/sign-in
+Host: {{identityHost}}
 content-type: application/json
 
 {
@@ -109,6 +130,7 @@ content-type: application/json
 
 ### Create a customer account
 POST {{apiUrl}}/customers
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -121,28 +143,33 @@ content-type: application/json
 
 ### Add some products to your cart.
 POST {{apiUrl}}/cart/items
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
 {
 	"productId": "{{productId}}",
-	"quantity": 1
+	"quantity": 5
 }
 
 ### Get your shopping cart
 GET {{apiUrl}}/cart
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Delete a product from your cart if needed
 DELETE {{apiUrl}}/cart/items/{{productId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Clear cart
 DELETE {{apiUrl}}/cart
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Create a new order
 POST {{apiUrl}}/orders
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -151,14 +178,17 @@ content-type: application/json
 
 ### Get your orders list
 GET {{apiUrl}}/orders
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Get your order details by updating @orderId parameter above
 GET {{apiUrl}}/orders/{{orderId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 ### Complete an order (only works for new orders with status "created")
 POST {{apiUrl}}/orders/{{orderId}}/complete
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -167,16 +197,19 @@ content-type: application/json
 
 ### Cancel an order if needed (only works for new orders with status "created")
 DELETE {{apiUrl}}/orders/{{orderId}}
+Host: {{apiHost}}
 authorization: Bearer {{accessToken}}
 
 # ================= IDENTITY SERVICE ======================= #
 
 ### Get your identity
-GET http://localhost:5002/me
+GET {{identityServiceUrl}}/me
+Host: {{identityHost}}
 authorization: Bearer {{accessToken}}
 
 ### Change password
-PUT http://localhost:5002/me/password
+PUT {{identityServiceUrl}}/me/password
+Host: {{identityHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -186,14 +219,16 @@ content-type: application/json
 }
 
 ### Generate a new access token by updating @refreshToken parameter above
-POST http://localhost:5002/access-tokens/{{refreshToken}}/refresh
+POST {{identityServiceUrl}}/access-tokens/{{refreshToken}}/refresh
+Host: {{identityHost}}
 content-type: application/json
 
 {
 }
 
 ### Revoke a current access token
-POST http://localhost:5002/access-tokens/revoke
+POST {{identityServiceUrl}}/access-tokens/revoke
+Host: {{identityHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 
@@ -201,7 +236,8 @@ content-type: application/json
 }
 
 ### Revoke a current refresh token
-POST http://localhost:5002/refresh-tokens/{{refreshToken}}/revoke
+POST {{identityServiceUrl}}/refresh-tokens/{{refreshToken}}/revoke
+Host: {{identityHost}}
 authorization: Bearer {{accessToken}}
 content-type: application/json
 

@@ -1,4 +1,10 @@
-Forked from DevMentors consolidated into a single repository and make it deployable to Kubernetes. Tested on microk8s.
+##Forked from DevMentors
+- consolidated into a single repository 
+- deployed to Kubernetes using [kubernetes-manifest.yaml](https://github.com/Micky-G/dshop/blob/master/DNC-DShop/k8s/kubernetes-manifest.yaml)
+- deployed [Istio](https://istio.io/) as a service Mesh using [istio-manifest.yaml](https://github.com/Micky-G/dshop/blob/master/DNC-DShop/k8s/istio-manifest.yaml)
+- tested on microk8s.
+
+If you don't want to run Istio as a gateway and service mesh I have [inlcuded but commented out](https://github.com/Micky-G/dshop/blob/master/DNC-DShop/k8s/kubernetes-manifest.yaml) a set of K8s loadbalancers or ingress gateway. If you want to go down the ingress route you will need to deploy the nginx-ingress helm chart using 'helm install --name ingress stable/nginx-ingress' first.
 
 # Distributed .NET Core
 

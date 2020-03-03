@@ -1,0 +1,55 @@
+## kubectl label namespace dshop istio-injection=enabled
+## kubectl port-forward -n istio-system service/grafana 3000:3000
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: dshop-gateway
+  namespace: dshop
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - 'api.mwg.com'
+    - 'identity.mwg.com'
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dshop-api-virtual-service
+  namespace: dshop
+spec:
+  hosts:
+  - 'api.mwg.com'
+  gateways:
+  - dshop-gateway
+  http:
+  - route:
+    - destination:
+        host: apiservice
+        port:
+          number: 5000
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dshop-identity-virtual-service
+  namespace: dshop
+spec:
+  hosts:
+  - 'identity.mwg.com'
+  gateways:
+  - dshop-gateway
+  http:
+  - route:
+    - destination:
+        host: identityservice
+        port:
+          number: 5002                    

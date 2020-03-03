@@ -27,10 +27,10 @@
 
 # Do some port forwarding on some of the services in order to access them
 # kubectl port-forward -n kube-system service/kubernetes-dashboard 10443:443
-# kubectl port-forward -n d-shop service/rabbitmq 15672:15672
-# kubectl port-forward -n d-shop service/jaeger 16686:16686
-# kubectl port-forward -n d-shop service/prometheus 9090:9090
-# kubectl port-forward -n d-shop service/seq 5341:80
+# kubectl port-forward -n dshop service/rabbitmq 15672:15672
+# kubectl port-forward -n dshop service/jaeger 16686:16686
+# kubectl port-forward -n dshop service/prometheus 9090:9090
+# kubectl port-forward -n dshop service/seq 5341:80
 
 # Delete a pod and see the scheduler recreating it
 # kubectl delete -n dshop pod customerservice-868fbf65b-4frzs
@@ -48,7 +48,9 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: dshop
-
+  labels:
+    istio-injection: enabled
+---
 ##*****************************************************************************
 ##*****************************************************************************
 ##*************************** INFRASTRUCTURE **********************************
@@ -696,6 +698,9 @@ kind: Service
 metadata:
   name: apiservice
   namespace: dshop
+  labels:
+    app: apiservice
+    service: apiservice
 spec:
   type: ClusterIP
   selector:
@@ -774,6 +779,9 @@ kind: Service
 metadata:
   name: customerservice
   namespace: dshop
+  labels:
+    app: customerservice
+    service: customerservice
 spec:
   type: ClusterIP
   selector:
@@ -852,6 +860,9 @@ kind: Service
 metadata:
   name: identityservice
   namespace: dshop
+  labels:
+    app: identityservice
+    service: identityservice
 spec:
   type: ClusterIP
   selector:
@@ -930,6 +941,9 @@ kind: Service
 metadata:
   name: notificationservice
   namespace: dshop
+  labels:
+    app: notificationservice
+    service: notificationservice  
 spec:
   type: ClusterIP
   selector:
@@ -1008,6 +1022,9 @@ kind: Service
 metadata:
   name: operationservice
   namespace: dshop
+  labels:
+    app: operationservice
+    service: operationservice
 spec:
   type: ClusterIP
   selector:
@@ -1086,6 +1103,9 @@ kind: Service
 metadata:
   name: orderservice
   namespace: dshop
+  labels:
+    app: orderservice
+    service: orderservice
 spec:
   type: ClusterIP
   selector:
@@ -1164,6 +1184,9 @@ kind: Service
 metadata:
   name: productservice
   namespace: dshop
+  labels:
+    app: productservice
+    service: productservice  
 spec:
   type: ClusterIP
   selector:
@@ -1242,6 +1265,9 @@ kind: Service
 metadata:
   name: signalrservice
   namespace: dshop
+  labels:
+    app: signalrservice
+    service: signalrservice  
 spec:
   type: ClusterIP
   selector:
@@ -1254,9 +1280,9 @@ spec:
 ---
 
 ##*****************************************************************************
-##*****************************************************************************
 ##******************************** ACCESS *************************************
 ##*****************************************************************************
+##***** USE EITHER THE K8S LOAD BALANCERS OR K8S INGRESS OR ISTIO GATEWAY *****
 ##*****************************************************************************
 
 ## LOAD BALANCERS
@@ -1303,26 +1329,25 @@ spec:
 # KUBE_EDITOR="nano" kubectl edit -n ingress pod/nginx-ingress-microk8s-controller-6x696
 
 # deploy the ingress resource
-apiVersion: extensions/v1beta1
-kind: Ingress
-metadata:
-  name: dshop-ingress
-  namespace: dshop
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"    
-spec:
-  rules:
-  - host: api.mwg.com
-    http:
-      paths:
-      - backend:
-          serviceName: apiservice
-          servicePort: 5000
-  - host: identity.mwg.com
-    http:
-      paths:
-      - backend:
-          serviceName: identityservice
-          servicePort: 5002          
----
+#apiVersion: extensions/v1beta1
+#kind: Ingress
+#metadata:
+#  name: dshop-ingress
+#  namespace: dshop
+#  annotations:
+#    kubernetes.io/ingress.class: nginx
+#    nginx.ingress.kubernetes.io/ssl-redirect: "false"    
+#spec:
+#  rules:
+#  - host: api.mwg.com
+#    http:
+#      paths:
+#      - backend:
+#          serviceName: apiservice
+#          servicePort: 5000
+#  - host: identity.mwg.com
+#    http:
+#      paths:
+#      - backend:
+#          serviceName: identityservice
+#          servicePort: 5002          

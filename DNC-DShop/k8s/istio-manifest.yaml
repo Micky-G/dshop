@@ -52,4 +52,255 @@ spec:
     - destination:
         host: identityservice
         port:
-          number: 5002                    
+          number: 5002
+---
+
+## Allowing outbound traffic to http://google.com to egress mesh
+## need to test this somehow
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: google.com-destination-rule
+  namespace: dshop
+spec:
+  host: '*.google.com'
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+---
+
+## Allowing outbound traffic to http://google.co.uk to egress mesh
+## need to test this somehow
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: google.co.uk-destination-rule
+  namespace: dshop
+spec:
+  host: '*.google.co.uk'
+  trafficPolicy:
+    tls:
+      mode: SIMPLE
+--- 
+
+## Default set of destination rules for every service
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: apiservice-destination-rule
+  namespace: dshop
+spec:
+  host: apiservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+  - name: v2
+    labels:
+      version: v1.0.1
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: customerservice-destination-rule
+  namespace: dshop
+spec:
+  host: customerservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: identityservice-destination-rule
+  namespace: dshop
+spec:
+  host: identityservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: notificationservice-destination-rule
+  namespace: dshop
+spec:
+  host: notificationservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: operationservice-destination-rule
+  namespace: dshop
+spec:
+  host: operationservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: orderservice-destination-rule
+  namespace: dshop
+spec:
+  host: orderservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: productservice-destination-rule
+  namespace: dshop
+spec:
+  host: productservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: signalrservice-destination-rule
+  namespace: dshop
+spec:
+  host: signalrservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+---
+
+###########################################################
+############ Api Service Traffic Shapping #################
+###########################################################
+
+## destination rule with a simple round robin load balancer
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: apiservice-destination-rule
+  namespace: dshop
+spec:
+  host: apiservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+    trafficPolicy:
+      loadBalancer:
+#      simple: RANDOM
+        simple: ROUND_ROBIN      
+  - name: v2
+    labels:
+      version: v1.0.1
+    trafficPolicy:
+      loadBalancer:
+#        simple: RANDOM
+        simple: ROUND_ROBIN
+#        simple: LEAST_CONN
+---
+
+## virtual service allowing us to direct 80% of api traffic to v1 and 20% to v2
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dshop-api-virtual-service
+  namespace: dshop
+spec:
+  hosts:
+  - 'api.mwg.com'
+  gateways:
+  - dshop-gateway
+  http:
+  - route:
+    - destination:
+        host: apiservice
+        subset: v1
+        port:
+          number: 5000
+      weight: 80
+    - destination:
+        host: apiservice
+        subset: v2
+        port:
+          number: 5000
+      weight: 20      
+---
+
+################################################################
+############ Identity Service Traffic Shapping #################
+################################################################
+
+## destination rule with a simple round robin load balancer
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: identityservice-destination-rule
+  namespace: dshop
+spec:
+  host: identityservice
+  subsets:
+  - name: v1
+    labels:
+      version: v1.0.0
+    trafficPolicy:
+      loadBalancer:
+#      simple: RANDOM
+        simple: ROUND_ROBIN      
+  - name: v2
+    labels:
+      version: v1.0.1
+    trafficPolicy:
+      loadBalancer:
+#        simple: RANDOM
+        simple: ROUND_ROBIN
+#        simple: LEAST_CONN
+---
+
+## virtual service allowing us to direct 20% of api traffic to v1 and 80% to v2
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dshop-identity-virtual-service
+  namespace: dshop
+spec:
+  hosts:
+  - 'identity.mwg.com'
+  gateways:
+  - dshop-gateway
+  http:
+  - route:
+    - destination:
+        host: identityservice
+        subset: v1
+        port:
+          number: 5002
+      weight: 20
+    - destination:
+        host: identityservice
+        subset: v2
+        port:
+          number: 5002
+      weight: 80      
+---

@@ -644,28 +644,88 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: apiservice
+  name: apiservice-v1.0.0
   namespace: dshop
+  labels:
+    app: apiservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: apiservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: apiservice
-        environment: dev
-        version: v0.1
+        version: v1.0.0
+        environment: dev        
     spec:
       serviceAccountName: api-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
       containers:
       - name: apiservice
-        image: michaelgroenewald/k8s.dshop.api:latest
+        image: michaelgroenewald/k8s.dshop.api:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apiservice-v1.0.1
+  namespace: dshop
+  labels:
+    app: apiservice
+    version: v1.0.1  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: apiservice
+      version: v1.0.1
+  template:
+    metadata:
+      labels:
+        app: apiservice
+        version: v1.0.1
+        environment: dev        
+    spec:
+      serviceAccountName: api-service
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
+      containers:
+      - name: apiservice
+        image: michaelgroenewald/k8s.dshop.api:1.0.1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -725,28 +785,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: customerservice
+  name: customerservice-v1.0.0
   namespace: dshop
+  labels:
+    app: customerservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: customerservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: customerservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: customer-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
       containers:
       - name: customerservice
-        image: michaelgroenewald/k8s.dshop.services.customers:latest
+        image: michaelgroenewald/k8s.dshop.services.customers:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -806,28 +870,88 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: identityservice
+  name: identityservice-v1.0.0
   namespace: dshop
+  labels:
+    app: identityservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: identityservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: identityservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: identity-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
       containers:
       - name: identityservice
-        image: michaelgroenewald/k8s.dshop.services.identity:latest
+        image: michaelgroenewald/k8s.dshop.services.identity:1.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        env:
+        - name: ASPNETCORE_ENVIRONMENT
+          value: "k8s"        
+        readinessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        livenessProbe:
+          httpGet:
+            path : /ping
+            port: 5000
+          initialDelaySeconds: 25
+          periodSeconds: 15
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: identityservice-v1.0.1
+  namespace: dshop
+  labels:
+    app: identityservice
+    version: v1.0.1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: identityservice
+      version: v1.0.1
+  template:
+    metadata:
+      labels:
+        app: identityservice
+        environment: dev
+        version: v1.0.1
+    spec:
+      serviceAccountName: identity-service
+      terminationGracePeriodSeconds: 5
+      initContainers:
+        - name: wait-for-rabbit
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
+      containers:
+      - name: identityservice
+        image: michaelgroenewald/k8s.dshop.services.identity:1.0.1
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -887,28 +1011,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notificationservice
+  name: notificationservice-v1.0.0
   namespace: dshop
+  labels:
+    app: notificationservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: notificationservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: notificationservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: notification-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
       containers:
       - name: notificationservice
-        image: michaelgroenewald/k8s.dshop.services.notifications:latest
+        image: michaelgroenewald/k8s.dshop.services.notifications:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -968,28 +1096,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: operationservice
+  name: operationservice-v1.0.0
   namespace: dshop
+  labels:
+    app: operationservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: operationservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: operationservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: operations-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0
       containers:
       - name: operationservice
-        image: michaelgroenewald/k8s.dshop.services.operations:latest
+        image: michaelgroenewald/k8s.dshop.services.operations:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -1049,28 +1181,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: orderservice
+  name: orderservice-v1.0.0
   namespace: dshop
+  labels:
+    app: orderservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: orderservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: orderservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: order-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0	  
       containers:
       - name: orderservice
-        image: michaelgroenewald/k8s.dshop.services.orders:latest
+        image: michaelgroenewald/k8s.dshop.services.orders:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -1130,28 +1266,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: productservice
+  name: productservice-v1.0.0
   namespace: dshop
+  labels:
+    app: productservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: productservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: productservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: product-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0	  
       containers:
       - name: productservice
-        image: michaelgroenewald/k8s.dshop.services.products:latest
+        image: michaelgroenewald/k8s.dshop.services.products:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -1211,28 +1351,32 @@ metadata:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: signalrservice
+  name: signalrservice-v1.0.0
   namespace: dshop
+  labels:
+    app: signalrservice
+    version: v1.0.0
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: signalrservice
+      version: v1.0.0
   template:
     metadata:
       labels:
         app: signalrservice
         environment: dev
-        version: v0.1
+        version: v1.0.0
     spec:
       serviceAccountName: signalr-service
       terminationGracePeriodSeconds: 5
       initContainers:
         - name: wait-for-rabbit
-          image: michaelgroenewald/k8s.dshop.rabbit-ping:latest	  
+          image: michaelgroenewald/k8s.dshop.rabbit-ping:1.0.0	  
       containers:
       - name: signalrservice
-        image: michaelgroenewald/k8s.dshop.services.signalr:latest
+        image: michaelgroenewald/k8s.dshop.services.signalr:1.0.0
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
